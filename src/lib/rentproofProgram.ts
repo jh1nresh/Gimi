@@ -18,7 +18,7 @@ import {
 } from "@solana/spl-token";
 
 export const RENTAL_SESSION_PROGRAM_ID = new PublicKey("AVL316tYxrg8MhEeWtaxbwdShMWybzRAH1zNQWvX355K");
-export const DEMO_OWNER_WALLET = new PublicKey("7Fmr5t2h2SZ55n4w3dkgWTjaXRafDnBLLy1RhdmPJk6b");
+export const DEMO_OWNER_WALLET = new PublicKey("3z6edmobZbGBQP1pxfYi3XuxqEFeZn1rZfGBegtJ2GAh");
 export const DEMO_RENTER_WALLET = new PublicKey("5pNLovuXAbyKM8UGDKZg9Qqe85Sqt1kMPNaippombvwC");
 export const DEMO_FEE_AUTHORITY = new PublicKey("AWesFzR3x97q5QWk6MBxLU8kRGZcuobtKuoABtMiHWH1");
 export const DEMO_USDC_MINT = new PublicKey("FGzrpZ3DnvoeQj2au9g4cMoawrvoyRdgn51yXDtHqQzp");

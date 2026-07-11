@@ -123,8 +123,14 @@ npm run lint
 npm run build
 npm run test:anchor
 npm run devnet:setup
+npm run demo:ensure-items
+npm run demo:check-items
 npm run e2e:devnet
 ```
+
+`demo:ensure-items` idempotently initializes every product shown in the demo
+catalog under the configured devnet owner. `demo:check-items` is read-only and
+fails if any displayed Item PDA is missing or no longer available.
 
 ## Supabase
 

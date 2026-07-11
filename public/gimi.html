@@ -1905,13 +1905,13 @@
         <div class="chips-block">
           <div class="chips-label">Try asking:</div>
           <div class="chips" id="chips">
-            <button class="chip" data-q="Camping gear for two">Camping gear</button>
-            <button class="chip" data-q="Drone for a rooftop shoot">Drone for a shoot</button>
-            <button class="chip" data-q="Throwing a birthday party">Birthday party</button>
-            <button class="chip" data-q="Golf clubs this weekend">Golf clubs</button>
-            <button class="chip" data-q="Ski trip to Tahoe">Ski trip</button>
-            <button class="chip" data-q="Need a drill for DIY">A drill</button>
-            <button class="chip" data-q="Kayak on the lake">Kayak</button>
+            <button class="chip" data-q="USB-C charger for my laptop">Laptop charger</button>
+            <button class="chip" data-q="Wireless mic for an interview">Wireless mic</button>
+            <button class="chip" data-q="Camera for a product shoot">Camera setup</button>
+            <button class="chip" data-q="Projector for a presentation">Projector</button>
+            <button class="chip" data-q="Portable monitor for coding">Portable monitor</button>
+            <button class="chip" data-q="Wi-Fi router for our booth">Booth Wi-Fi</button>
+            <button class="chip" data-q="Tripod for a demo video">Video tripod</button>
           </div>
         </div>
 
@@ -1920,7 +1920,7 @@
       <div class="catalog-scroll" id="catalogScroll">
         <div class="section-head">
           <div class="title">Near you</div>
-          <div class="meta" id="catalogMeta">24 items</div>
+          <div class="meta" id="catalogMeta"></div>
         </div>
         <div class="catalog" id="catalog"></div>
       </div>
@@ -2116,30 +2116,16 @@
    CATALOG
 ──────────────────────────────────────────────────────────────────── */
 const ITEMS = [
-  { id:'golf-set',     name:'Callaway Set',          owner:'Marco',     dist:'2.4 mi', price:38, glyph:'⛳', hue:130, tags:['golf','clubs','sports','outdoor','weekend'] },
-  { id:'tent-4p',      name:'4-Person Dome Tent',    owner:'Priya',     dist:'0.9 mi', price:22, glyph:'⛺', hue:155, tags:['camping','tent','outdoor','weekend'] },
-  { id:'sleeping-bag', name:'Down Sleeping Bag',     owner:'Priya',     dist:'0.9 mi', price: 9, glyph:'🛌', hue:200, tags:['camping','sleeping','outdoor'] },
-  { id:'cooler',       name:'Yeti 45 Cooler',        owner:'Dan',       dist:'1.4 mi', price:14, glyph:'🧊', hue:195, tags:['camping','cooler','party','outdoor','beach'] },
-  { id:'drone',        name:'DJI Mavic 3',           owner:'Talia',     dist:'3.1 mi', price:65, glyph:'🚁', hue:215, tags:['drone','photo','video','aerial','shoot'] },
-  { id:'lens-50',      name:'Sony 50mm f/1.4',       owner:'Talia',     dist:'3.1 mi', price:24, glyph:'📷', hue:320, tags:['camera','lens','photo','shoot'] },
-  { id:'tripod',       name:'Manfrotto Tripod',      owner:'Sam',       dist:'1.7 mi', price:12, glyph:'📐', hue: 40, tags:['tripod','photo','video','shoot'] },
-  { id:'drill',        name:'DeWalt Drill',          owner:'HW Co-op',  dist:'0.3 mi', price:11, glyph:'🔩', hue: 30, tags:['drill','tools','diy','home','fix'] },
-  { id:'sander',       name:'Orbital Sander',        owner:'HW Co-op',  dist:'0.3 mi', price: 9, glyph:'🪚', hue: 25, tags:['sander','tools','diy','home','fix'] },
-  { id:'pressure',     name:'Pressure Washer',       owner:'Jules',     dist:'4.0 mi', price:28, glyph:'💦', hue:200, tags:['pressure','wash','tools','home','fix'] },
-  { id:'projector',    name:'4K Projector',          owner:'Mei',       dist:'0.6 mi', price:32, glyph:'📽', hue:285, tags:['projector','movie','party','event'] },
-  { id:'speaker',      name:'JBL PartyBox',          owner:'Mei',       dist:'0.6 mi', price:24, glyph:'🔊', hue:330, tags:['speaker','party','music','event','birthday'] },
-  { id:'dj-controller',name:'Pioneer DDJ',           owner:'Reza',      dist:'2.2 mi', price:35, glyph:'🎛', hue:310, tags:['dj','music','party','event','birthday'] },
-  { id:'guitar',       name:'Fender Acoustic',       owner:'Lila',      dist:'1.1 mi', price:14, glyph:'🎸', hue: 20, tags:['guitar','music','acoustic'] },
-  { id:'keyboard-88',  name:'Roland 88-key',         owner:'Lila',      dist:'1.1 mi', price:22, glyph:'🎹', hue:340, tags:['piano','keyboard','music'] },
-  { id:'ebike',        name:'Specialized E-Bike',    owner:'Owen',      dist:'0.4 mi', price:30, glyph:'🚲', hue:110, tags:['bike','ebike','transport','outdoor'] },
-  { id:'roof-rack',    name:'Thule Roof Rack',       owner:'Owen',      dist:'0.4 mi', price:18, glyph:'🚗', hue:220, tags:['rack','car','transport','outdoor'] },
-  { id:'kayak',        name:'Inflatable Kayak',      owner:'Bay Co-op', dist:'2.0 mi', price:36, glyph:'🛶', hue:205, tags:['kayak','water','outdoor','beach','lake'] },
-  { id:'paddleboard',  name:'Paddleboard',           owner:'Bay Co-op', dist:'2.0 mi', price:28, glyph:'🏄', hue:190, tags:['paddle','water','outdoor','beach','lake'] },
-  { id:'ski-set',      name:'Rossignol Skis',        owner:'Alpine',    dist:'3.5 mi', price:42, glyph:'🎿', hue:210, tags:['ski','snow','winter','tahoe'] },
-  { id:'snowboard',    name:'Burton Snowboard',      owner:'Alpine',    dist:'3.5 mi', price:36, glyph:'🏂', hue:230, tags:['snowboard','snow','winter','tahoe'] },
-  { id:'mixer',        name:'KitchenAid Mixer',      owner:'Nia',       dist:'0.7 mi', price:11, glyph:'🥣', hue:350, tags:['mixer','baking','kitchen','party','birthday'] },
-  { id:'telescope',    name:'Celestron Scope',       owner:'Astro Club',dist:'2.7 mi', price:26, glyph:'🔭', hue:250, tags:['telescope','astronomy','outdoor'] },
-  { id:'vr',           name:'Meta Quest 3',          owner:'Kai',       dist:'1.8 mi', price:18, glyph:'🥽', hue:300, tags:['vr','quest','gaming'] },
+  { id:'power_bank_18', name:'Anker Power Bank',      owner:'Gimi Desk', dist:'0.2 mi', price:48,  glyph:'🔋', hue:130, tags:['power','battery','charger','phone','laptop'] },
+  { id:'charger_07',    name:'USB-C Charger',         owner:'Gimi Desk', dist:'0.2 mi', price:24,  glyph:'🔌', hue:190, tags:['power','charger','usb-c','phone','laptop'] },
+  { id:'adapter_03',    name:'HDMI Adapter',          owner:'A/V Desk',  dist:'0.4 mi', price:24,  glyph:'🔗', hue:210, tags:['adapter','hdmi','display','projector','video'] },
+  { id:'mic_11',        name:'Wireless Mic',          owner:'Media Lab', dist:'0.5 mi', price:72,  glyph:'🎙', hue:285, tags:['mic','audio','interview','video','shoot'] },
+  { id:'camera_04',     name:'Mirrorless Camera',     owner:'Media Lab', dist:'0.5 mi', price:192, glyph:'📷', hue:320, tags:['camera','photo','video','shoot'] },
+  { id:'tripod_09',     name:'Manfrotto Tripod',      owner:'A/V Desk',  dist:'0.4 mi', price:24,  glyph:'📐', hue:40,  tags:['tripod','photo','video','shoot'] },
+  { id:'keyboard_15',   name:'MX Keys Mini',          owner:'Dev Hub',   dist:'0.3 mi', price:24,  glyph:'⌨️', hue:340, tags:['keyboard','workspace','computer'] },
+  { id:'monitor_22',    name:'Portable Monitor',      owner:'Dev Hub',   dist:'0.3 mi', price:96,  glyph:'🖥', hue:215, tags:['monitor','display','workspace','computer'] },
+  { id:'router_06',     name:'Travel Router',         owner:'Infra Bar', dist:'0.6 mi', price:48,  glyph:'📡', hue:155, tags:['router','wifi','network','internet'] },
+  { id:'projector_13',  name:'Mini Projector',        owner:'A/V Desk',  dist:'0.4 mi', price:120, glyph:'📽', hue:300, tags:['projector','movie','presentation','video'] },
 ];
 
 function matchItems(query) {
@@ -2165,19 +2151,19 @@ function matchItems(query) {
 
 const REPLY = (q) => {
   const lq = q.toLowerCase();
-  if (lq.includes('golf'))                      return { lead: "Found three sets within three miles.", glow: " Marco's is closest." };
-  if (/camp|outdoor|weekend/.test(lq))          return { lead: "Found tent, bag, cooler — Priya has all three.",  glow: " 0.9 mi away." };
-  if (/drone|shoot|photo|video/.test(lq))       return { lead: "Found Mavic, lens, tripod from Talia.",            glow: " Batteries included." };
-  if (/party|birthday|event/.test(lq))          return { lead: "Found speaker, projector, decks from Mei.",      glow: " One pickup." };
-  if (/ski|snow|tahoe|winter/.test(lq))         return { lead: "Found skis and a board at Alpine.",               glow: " Bundle saves $14." };
-  if (/drill|diy|fix|repair|home/.test(lq))     return { lead: "Found a DeWalt at the Hardware Co-op.",            glow: " Four minutes on foot." };
-  if (/kayak|paddle|water|lake|beach/.test(lq)) return { lead: "Found a tandem kayak and a board, Bay Co-op.",      glow: " Dock pickup." };
+  if (/charger|power|battery|laptop/.test(lq))  return { lead: "Found a charger and power bank at Gimi Desk.", glow: " Two minutes away." };
+  if (/mic|audio|interview/.test(lq))            return { lead: "Found a wireless mic at Media Lab.", glow: " Ready for pickup." };
+  if (/camera|shoot|photo|video/.test(lq))       return { lead: "Found a camera and tripod nearby.", glow: " One media setup." };
+  if (/projector|presentation/.test(lq))         return { lead: "Found a projector and HDMI adapter.", glow: " One pickup." };
+  if (/monitor|coding|workspace/.test(lq))       return { lead: "Found a portable monitor and keyboard.", glow: " At Dev Hub." };
+  if (/wifi|wi-fi|router|network/.test(lq))      return { lead: "Found a travel router at Infra Bar.", glow: " Booth-ready." };
   return { lead: "Found what fits nearby.", glow: " Nearest first." };
 };
 
 /* render catalog — note the photo slot is empty for now (emoji placeholder),
    but the structure accepts real PNG product photos */
 const catalogEl = document.getElementById('catalog');
+document.getElementById('catalogMeta').textContent = `${ITEMS.length} items`;
 function renderCatalog() {
   catalogEl.innerHTML = '';
   ITEMS.forEach((it) => {
@@ -2755,7 +2741,7 @@ function ask(query) {
 
   later(listenDur + 6500, () => {
     setState('idle');
-    metaEl.textContent = '24 items';
+    metaEl.textContent = `${ITEMS.length} items`;
   });
 }
 
@@ -2957,32 +2943,7 @@ const PENDING_SETTLEMENT_KEY = 'gimi.pendingRentalSettlement';
 const PENDING_LISTING_KEY = 'gimi.pendingListingPublish';
 const PENDING_CARD_RECEIPT_KEY = 'gimi.pendingCardReceipt';
 
-const ITEM_TO_RENTPROOF = {
-  'golf-set': 'keyboard_15',
-  'tent-4p': 'power_bank_18',
-  'sleeping-bag': 'umbrella_02',
-  'cooler': 'power_bank_18',
-  'drone': 'camera_04',
-  'lens-50': 'camera_04',
-  'tripod': 'tripod_09',
-  'drill': 'router_06',
-  'sander': 'router_06',
-  'pressure': 'router_06',
-  'projector': 'monitor_22',
-  'speaker': 'mic_11',
-  'dj-controller': 'mic_11',
-  'guitar': 'mic_11',
-  'keyboard-88': 'keyboard_15',
-  'ebike': 'router_06',
-  'roof-rack': 'router_06',
-  'kayak': 'monitor_22',
-  'paddleboard': 'monitor_22',
-  'ski-set': 'monitor_22',
-  'snowboard': 'monitor_22',
-  'mixer': 'badge_printer_01',
-  'telescope': 'monitor_22',
-  'vr': 'monitor_22',
-};
+const ITEM_TO_RENTPROOF = Object.fromEntries(ITEMS.map((item) => [item.id, item.id]));
 
 function shortWallet(address) {
   return address ? `${address.slice(0, 4)}…${address.slice(-4)}` : '';
@@ -3077,8 +3038,7 @@ function escapeHtml(value) {
 }
 
 function glyphForItemId(itemId) {
-  const prototype = Object.entries(ITEM_TO_RENTPROOF).find(([, rentproofId]) => rentproofId === itemId)?.[0];
-  return ITEMS.find((item) => item.id === prototype)?.glyph || '📦';
+  return ITEMS.find((item) => item.id === itemId)?.glyph || '📦';
 }
 
 function readLocalActiveRentals() {
@@ -3871,7 +3831,9 @@ function setSheetStatus(message, tone = 'muted') {
 }
 
 function mappedRentalItemId(item) {
-  return ITEM_TO_RENTPROOF[item?.id] || 'power_bank_18';
+  const itemId = ITEM_TO_RENTPROOF[item?.id];
+  if (!itemId) throw new Error('This item is not configured for rental');
+  return itemId;
 }
 
 function inferRequestedHours(query, item) {

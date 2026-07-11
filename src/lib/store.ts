@@ -1,7 +1,7 @@
-import { RentalItem, RentalReceipt } from "./types";
+import type { RentalItem, RentalReceipt } from "./types";
 
 const DEMO_NOW = 1778284800000;
-const DEMO_OWNER_WALLET = "7Fmr5t2h2SZ55n4w3dkgWTjaXRafDnBLLy1RhdmPJk6b";
+export const DEMO_OWNER_WALLET = "3z6edmobZbGBQP1pxfYi3XuxqEFeZn1rZfGBegtJ2GAh";
 
 export const COMMUNITY_ITEMS: RentalItem[] = [
   {
