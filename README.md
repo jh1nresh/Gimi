@@ -798,6 +798,7 @@ This repo now has a deployed devnet Anchor settlement program, a product-ready d
 - LI.FI live quotes require valid source and destination wallet addresses; local demo mode falls back when those are missing.
 - ElevenLabs is server-tool ready, but the hosted ElevenLabs agent still needs to be configured with this endpoint and `ELEVENLABS_API_KEY`.
 - MCP, Base MCP, and ElevenLabs tools never sign or move funds; they expose read/prepare tools only.
+- `npm run audit:runtime` blocks new production dependency advisories. The remaining upstream residuals are documented in [docs/dependency-security.md](docs/dependency-security.md).
 
 ## Next Steps
 

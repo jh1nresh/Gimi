@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "description": "AI rental agent for community inventory with Card or Solana checkout, escrow-backed returns, and on-chain receipts.",
-  "homepage": "https://github.com/clawdez/Gimi#readme",
+  "homepage": "https://github.com/JhiNResH/Gimi#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/clawdez/Gimi.git"
+    "url": "https://github.com/JhiNResH/Gimi.git"
   },
   "keywords": [
     "gimi",
@@ -25,6 +25,7 @@
     "dev": "node scripts/run-next-clean.cjs dev",
     "build": "node scripts/run-next-clean.cjs build",
     "anchor:build": "NO_DNA=1 anchor build",
+    "audit:runtime": "node scripts/check-runtime-audit.mjs",
     "devnet:setup": "node --experimental-strip-types scripts/setup-rentproof-devnet.mjs",
     "demo:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/seed-partner-demo.mjs",
     "e2e:devnet": "node scripts/e2e-owner-listing-rental-devnet.mjs",
@@ -33,24 +34,24 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:anchor": "NO_DNA=1 anchor build && cargo test -p rental_session",
-    "verify:prod-ready": "npm run typecheck && npm test && npm run lint && npm run build",
+    "verify:prod-ready": "npm run audit:runtime && npm run typecheck && npm test && npm run lint && npm run build",
     "smoke:moonpay": "node scripts/smoke-moonpay-commerce.mjs"
   },
   "dependencies": {
-    "@privy-io/react-auth": "^3.24.0",
-    "@solana-program/memo": "^0.11.0",
-    "@solana-program/system": "^0.12.0",
+    "@privy-io/react-auth": "^3.34.0",
+    "@solana-program/memo": "^0.11.2",
+    "@solana-program/system": "^0.12.2",
     "@solana-program/token": "^0.13.0",
-    "@solana/kit": "^6.9.0",
-    "@solana/spl-token": "^0.4.14",
+    "@solana/kit": "^6.10.0",
+    "@solana/spl-token": "^0.4.15",
     "@solana/web3.js": "^1.98.4",
     "@stripe/react-stripe-js": "^6.7.0",
     "@stripe/stripe-js": "^9.9.0",
-    "@supabase/supabase-js": "^2.105.4",
+    "@supabase/supabase-js": "^2.110.2",
     "jose": "^6.2.3",
-    "next": "16.2.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "next": "16.2.10",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
     "stripe": "^22.3.1"
   },
   "devDependencies": {
@@ -59,9 +60,16 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
+  },
+  "overrides": {
+    "axios": "1.18.1",
+    "form-data": "4.0.6",
+    "hono": "4.12.29",
+    "lodash": "4.18.1",
+    "postcss": "8.5.16"
   }
 }
