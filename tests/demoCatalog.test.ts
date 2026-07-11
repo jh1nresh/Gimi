@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { COMMUNITY_ITEMS, DEMO_OWNER_WALLET } from "@/lib/store";
 import { DEMO_OWNER_WALLET as PROGRAM_DEMO_OWNER_WALLET } from "@/lib/rentproofProgram";
+import { getRentableItems } from "@/lib/rentableItems";
 
 const html = readFileSync(new URL("../public/gimi.html", import.meta.url), "utf8");
 
@@ -28,5 +29,13 @@ describe("demo rental catalog", () => {
 
   it("uses the same signable devnet owner across store and program defaults", () => {
     expect(PROGRAM_DEMO_OWNER_WALLET.toBase58()).toBe(DEMO_OWNER_WALLET);
+  });
+
+  it("never exposes unavailable static items to renter search", async () => {
+    const items = await getRentableItems();
+
+    expect(items.every((item) => item.status === "available")).toBe(true);
+    expect(items.map((item) => item.id)).not.toContain("umbrella_02");
+    expect(items.map((item) => item.id)).not.toContain("badge_printer_01");
   });
 });

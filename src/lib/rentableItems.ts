@@ -13,5 +13,8 @@ export async function getRentableItems(): Promise<RentalItem[]> {
   const listings = await getListingsRepository().listAvailable();
   const listingItems = listings.map(listingToRentalItem);
   const seen = new Set(listingItems.map((item) => item.id));
-  return [...listingItems, ...getItems().filter((item) => !seen.has(item.id))];
+  return [
+    ...listingItems,
+    ...getItems().filter((item) => item.status === "available" && !seen.has(item.id)),
+  ];
 }
