@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    uses: jh1nresh/.github/.github/workflows/web-ci.yml@0cb6fd5b730ced897c767d1c9979aba4e49d201d
+    with:
+      node-version: "24"
+      verify-script: verify:prod-ready
+      output-directory: .next
+      job-key: gimi-rental-proof
+      timeout-minutes: 25
