@@ -2115,7 +2115,11 @@
         </div>
 
         <div class="oracle-wrap">
-          <canvas id="oracle"></canvas>
+          <canvas
+            id="oracle"
+            role="img"
+            aria-label="Gimi inventory pool composed from the same ten nearby products shown below"
+          ></canvas>
         </div>
 
         <div class="speech">
@@ -2573,10 +2577,10 @@ new ResizeObserver(fit).observe(cv);
 fit();
 
 const STATE = {
-  idle:       { spin: 0.10, jitter: 0.04, items: 0.0, lineGlow: 0.0, fluidI: 1.00, net: 0.10, zoom: 1.00 },
-  listening:  { spin: 0.30, jitter: 0.18, items: 0.0, lineGlow: 0.0, fluidI: 0.90, net: 0.55, zoom: 1.10 },
-  processing: { spin: 0.25, jitter: 0.06, items: 0.0, lineGlow: 0.3, fluidI: 0.30, net: 1.00, zoom: 1.32 },
-  responding: { spin: 0.18, jitter: 0.04, items: 1.0, lineGlow: 1.0, fluidI: 0.80, net: 0.90, zoom: 1.15 },
+  idle:       { spin: 0.065, jitter: 0.025, items: 1.00, lineGlow: 0.08, fluidI: 0.52, net: 0.16, zoom: 1.00 },
+  listening:  { spin: 0.16,  jitter: 0.10,  items: 1.00, lineGlow: 0.16, fluidI: 0.45, net: 0.52, zoom: 1.06 },
+  processing: { spin: 0.12,  jitter: 0.04,  items: 0.94, lineGlow: 0.42, fluidI: 0.24, net: 1.00, zoom: 1.18 },
+  responding: { spin: 0.08,  jitter: 0.02,  items: 1.00, lineGlow: 1.00, fluidI: 0.38, net: 0.72, zoom: 1.08 },
 };
 let cur = 'idle';
 let targets = { ...STATE.idle };
@@ -2639,15 +2643,21 @@ function render(now) {
     if (burstT > 0.5) releaseT = Math.min(1, releaseT + 0.025);
   }
 
-  ay += cp.spin * 0.012;
-  ax = Math.sin(t * 0.13) * 0.30;
+  const oracleMotionReduced = reducedPoolMotion.matches;
+  if (oracleMotionReduced) {
+    ay = 0.28;
+    ax = -0.08;
+  } else {
+    ay += cp.spin * 0.012;
+    ax = Math.sin(t * 0.13) * 0.30;
+  }
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cw, ch);
 
   const cx = cw / 2, cy = ch / 2;
   const R = Math.min(cw, ch) * 0.36 * cp.zoom;
-  const breath = 1 + Math.sin(t * 1.4) * 0.014;
+  const breath = oracleMotionReduced ? 1 : 1 + Math.sin(t * 1.4) * 0.014;
 
   /* chromatic liquid wash */
   ctx.save();
@@ -2696,7 +2706,7 @@ function render(now) {
       if (d2 < best) { best = d2; nearest = f; }
     }
     const r = (1.0 + pr.depth * 1.5) * (cur === 'listening' ? (1 + level * 0.35) : 1);
-    const a = (0.30 + pr.depth * 0.55) * (1 - cp.items * 0.30);
+    const a = (0.30 + pr.depth * 0.55) * (1 - cp.items * 0.72);
     ctx.fillStyle = `hsla(${nearest.hue}, 90%, ${72 + pr.depth * 8}%, ${a})`;
     ctx.beginPath(); ctx.arc(pr.sx, pr.sy, r, 0, TAU); ctx.fill();
   }
@@ -2756,16 +2766,6 @@ function render(now) {
       return true;
     });
 
-    // node dots (each item position gets a small visible dot when net is on)
-    for (let i = 0; i < nodes.length; i++) {
-      const n = nodes[i];
-      const isMatch = topMatches.indexOf(i) !== -1;
-      if (isMatch && cur === 'responding') continue; // handled by item-glyph code below
-      const a = cp.net * (0.35 + n.depth * 0.45);
-      ctx.fillStyle = `rgba(220, 240, 255, ${a})`;
-      ctx.beginPath(); ctx.arc(n.sx, n.sy, 1.5 + n.depth * 0.8, 0, TAU); ctx.fill();
-    }
-
     // CLICK RINGS — expanding ripples at match nodes
     CLICK_RINGS = CLICK_RINGS.filter(c => {
       const t = (now - c.startTime) / c.duration;
@@ -2796,10 +2796,9 @@ function render(now) {
     });
   }
 
-  /* items materialize ON the sphere during search.
-     During processing → small chromatic dots.
-     During responding → top matches grow LARGER with glyphs, briefly held
-     before being "released" toward the catalog (handled by streak layer in DOM).  */
+  /* The hero is the inventory: these are the same ITEMS rendered below.
+     Search changes emphasis and network activity without swapping in a
+     separate abstract composition. */
   const itemAlpha = cp.items;
   if (itemAlpha > 0.02) {
     const projItems = ITEMS.map((it, i) => {
@@ -2809,51 +2808,28 @@ function render(now) {
 
     for (const p of projItems) {
       const isTop = topMatches.indexOf(p.i) !== -1;
-      const showGlyph = isTop && cur === 'responding' && burstT > 0.15;
+      const foundGrow = isTop && cur === 'responding' ? Math.min(1, burstT * 2.2) : 0;
+      const glyphSize = (20 + p.depth * 24) * (1 + foundGrow * 0.32);
+      const backgroundItem = cur === 'responding' && topMatches.length > 0 && !isTop;
+      const alpha = itemAlpha * (0.42 + p.depth * 0.58) * (backgroundItem ? 0.28 : 1);
+      const haloRadius = glyphSize * (isTop ? 1.05 : 0.78);
+      const halo = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, haloRadius);
+      halo.addColorStop(0, `hsla(${p.it.hue}, 78%, 70%, ${(isTop ? 0.34 : 0.12) * alpha})`);
+      halo.addColorStop(1, `hsla(${p.it.hue}, 78%, 60%, 0)`);
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(p.sx, p.sy, haloRadius, 0, TAU);
+      ctx.fill();
 
-      // base size + extra growth on found (items grow and stay)
-      let sz;
-      if (isTop) {
-        if (cur === 'responding') {
-          const grow = Math.min(1, burstT * 2.2);
-          sz = (14 + grow * 14) * (0.7 + p.depth * 0.7);
-        } else {
-          sz = 20 * (0.7 + p.depth * 0.7);
-        }
-      } else {
-        sz = 11 * (0.7 + p.depth * 0.7);
-      }
-
-      const alpha = itemAlpha * (0.30 + p.depth * 0.70);
-
-      // halo behind top matches
-      if (isTop && cp.lineGlow > 0.1) {
-        const haloR = sz * (1.8 + Math.sin(t * 3 + p.i) * 0.15);
-        const g = ctx.createRadialGradient(p.sx, p.sy, sz * 0.4, p.sx, p.sy, haloR);
-        g.addColorStop(0, `hsla(${p.it.hue}, 95%, 70%, ${0.70 * cp.lineGlow * alpha})`);
-        g.addColorStop(1, `hsla(${p.it.hue}, 95%, 70%, 0)`);
-        ctx.fillStyle = g;
-        ctx.beginPath(); ctx.arc(p.sx, p.sy, haloR, 0, TAU); ctx.fill();
-      }
-
-      // chromatic dot
-      const g = ctx.createRadialGradient(p.sx - sz * 0.15, p.sy - sz * 0.2, 0, p.sx, p.sy, sz);
-      g.addColorStop(0,    `hsla(${p.it.hue}, 100%, 84%, ${alpha})`);
-      g.addColorStop(0.45, `hsla(${(p.it.hue + 40) % 360}, 95%, 60%, ${alpha * 0.85})`);
-      g.addColorStop(1,    `hsla(${(p.it.hue + 80) % 360}, 90%, 35%, 0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(p.sx, p.sy, sz, 0, TAU); ctx.fill();
-
-      // glyph on top of matched mini-tiles during responding burst
-      if (showGlyph && sz > 12 && p.depth > 0.45) {
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-        ctx.font = `${Math.round(sz * 0.85)}px ui-emoji, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(p.it.glyph, p.sx, p.sy + sz * 0.04);
-        ctx.restore();
-      }
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.shadowColor = `hsla(${p.it.hue}, 78%, 68%, ${isTop ? 0.48 : 0.24})`;
+      ctx.shadowBlur = isTop ? 18 : 9;
+      ctx.font = `${Math.round(glyphSize)}px ui-emoji, "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.it.glyph, p.sx, p.sy);
+      ctx.restore();
     }
 
     /* connecting lines between top matches at front */
