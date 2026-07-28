@@ -76,7 +76,7 @@
   .island {
     position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
     width: 120px; height: 34px; border-radius: 20px;
-    background: #000;
+    background: #020307;
     z-index: 30;
   }
   .status-bar {
@@ -242,7 +242,10 @@
     display: flex; align-items: center; justify-content: center;
     background: rgba(240, 242, 247, 0.08);
     color: var(--ink);
-    transition: all .2s var(--ease);
+    transition:
+      background-color .2s var(--ease),
+      color .2s var(--ease),
+      transform .2s var(--ease);
   }
   .chat-mic:hover { background: rgba(240, 242, 247, 0.14); }
   .chat-mic:active { transform: scale(0.94); }
@@ -291,7 +294,10 @@
     font-size: 12.5px; font-weight: 500;
     font-family: inherit;
     cursor: pointer;
-    transition: all .2s var(--ease);
+    transition:
+      border-color .2s var(--ease),
+      color .2s var(--ease),
+      transform .2s var(--ease);
   }
   .chip:hover { border-color: var(--glass-edge); color: var(--ink); }
   .chip:active { transform: scale(0.96); }
@@ -1849,6 +1855,231 @@
     }
   }
 
+  /* Inventory pool: products settle from the agent into an organic, reusable cluster. */
+  .catalog-scroll {
+    margin-top: clamp(-132px, -12vh, -92px);
+    padding: 0 clamp(18px, 3vw, 46px) 84px;
+  }
+  .section-head {
+    position: relative;
+    width: auto;
+    height: auto;
+    margin: 0 auto;
+    padding: 0 clamp(10px, 1.5vw, 22px) 12px;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    border: 0;
+    opacity: 0.76;
+  }
+  .section-head .title {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .section-head .meta {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+  .catalog {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(132px, 1fr));
+    gap: clamp(18px, 3.5vh, 34px) clamp(8px, 1.2vw, 18px);
+    min-width: 0;
+    padding: clamp(20px, 3vh, 34px) clamp(8px, 1.5vw, 22px) 28px;
+  }
+  .catalog::before {
+    position: absolute;
+    z-index: -1;
+    inset: -8% 4% 0;
+    pointer-events: none;
+    content: "";
+    background:
+      radial-gradient(ellipse 46% 42% at 50% 48%, rgba(181, 228, 255, 0.065), transparent 72%),
+      radial-gradient(ellipse 36% 30% at 42% 56%, rgba(171, 132, 255, 0.055), transparent 76%);
+    filter: blur(22px);
+  }
+  .specimen {
+    --pool-x: 0px;
+    --pool-y: 0px;
+    --pool-scale: 1;
+    --pool-rotate: 0deg;
+    --pool-delay: 0ms;
+    --pool-float-delay: 0ms;
+    --pool-float-duration: 5200ms;
+    --pool-match-x: 0px;
+    --pool-match-y: 0px;
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    opacity: 0.78;
+    transform: translate3d(var(--pool-x), var(--pool-y), 0) scale(var(--pool-scale));
+    transform-origin: 50% 62%;
+    transition:
+      opacity 220ms var(--ease),
+      filter 220ms var(--ease),
+      transform 420ms var(--ease);
+    will-change: transform, opacity;
+  }
+  .catalog:not(.is-ready) .specimen {
+    opacity: 0;
+    transform: translate3d(0, -112px, 0) scale(0.42);
+  }
+  .catalog.is-ready .specimen {
+    animation: inventory-settle 760ms cubic-bezier(.16, 1, .3, 1) var(--pool-delay) backwards;
+  }
+  .catalog.is-ready .photo-wrap {
+    animation: inventory-float var(--pool-float-duration) ease-in-out var(--pool-float-delay) infinite alternate;
+  }
+  .specimen:hover,
+  .specimen:focus-visible {
+    z-index: 4;
+    opacity: 1;
+    outline: none;
+    transform:
+      translate3d(var(--pool-x), calc(var(--pool-y) - 10px), 0)
+      scale(calc(var(--pool-scale) + 0.045));
+  }
+  .specimen:hover .photo-wrap,
+  .specimen:focus-visible .photo-wrap {
+    animation-play-state: paused;
+  }
+  .specimen:focus-visible .photo-wrap::after {
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(181, 228, 255, 0.52);
+    border-radius: 50%;
+    content: "";
+  }
+  .photo-wrap {
+    transform: rotate(var(--pool-rotate));
+    transform-origin: 50% 60%;
+    will-change: transform;
+  }
+  .photo-glow {
+    background:
+      radial-gradient(circle at 50% 55%, rgba(181, 228, 255, 0.22) 0%, hsla(var(--h1), 58%, 62%, 0.13) 38%, transparent 68%);
+    opacity: 0.46;
+    filter: blur(14px);
+  }
+  .specimen:hover .photo-glow,
+  .specimen:focus-visible .photo-glow {
+    opacity: 0.78;
+  }
+  .specimen .name,
+  .specimen .spec {
+    transition: color 220ms var(--ease), opacity 220ms var(--ease);
+  }
+  .specimen .name {
+    color: rgba(240, 242, 247, 0.84);
+  }
+  .specimen .spec {
+    opacity: 0.68;
+  }
+  .catalog.has-matches .specimen.fade {
+    filter: saturate(0.36);
+    opacity: 0.025;
+    pointer-events: none;
+    transform:
+      translate3d(var(--pool-x), calc(var(--pool-y) + 8px), 0)
+      scale(calc(var(--pool-scale) - 0.06));
+  }
+  .catalog.has-matches .specimen.match {
+    z-index: 3;
+    opacity: 1;
+    transform:
+      translate3d(
+        calc(var(--pool-x) + var(--pool-match-x)),
+        calc(var(--pool-y) - 16px + var(--pool-match-y)),
+        0
+      )
+      scale(calc(var(--pool-scale) + 0.075));
+  }
+
+  @keyframes inventory-settle {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, -132px, 0) scale(0.36);
+    }
+    62% {
+      opacity: 1;
+      transform:
+        translate3d(var(--pool-x), calc(var(--pool-y) + 7px), 0)
+        scale(calc(var(--pool-scale) + 0.035));
+    }
+    100% {
+      opacity: 0.78;
+      transform: translate3d(var(--pool-x), var(--pool-y), 0) scale(var(--pool-scale));
+    }
+  }
+  @keyframes inventory-float {
+    from {
+      transform: translate3d(0, -3px, 0) rotate(calc(var(--pool-rotate) - 0.8deg));
+    }
+    to {
+      transform: translate3d(0, 5px, 0) rotate(calc(var(--pool-rotate) + 0.8deg));
+    }
+  }
+
+  @media (max-width: 980px) {
+    .catalog-scroll {
+      margin-top: -92px;
+      padding-inline: 16px;
+    }
+    .catalog {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 28px 10px;
+      padding-inline: 10px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .catalog-scroll {
+      margin-top: -68px;
+      padding-inline: 10px;
+    }
+    .section-head {
+      padding-inline: 8px;
+    }
+    .catalog {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 26px 4px;
+      padding: 18px 4px 24px;
+    }
+    .specimen {
+      transform: translate3d(0, var(--pool-y), 0) scale(0.92);
+    }
+    .specimen:hover,
+    .specimen:focus-visible {
+      transform: translate3d(0, calc(var(--pool-y) - 8px), 0) scale(0.96);
+    }
+    .catalog.has-matches .specimen.fade {
+      transform: translate3d(0, calc(var(--pool-y) + 6px), 0) scale(0.86);
+    }
+    .catalog.has-matches .specimen.match {
+      transform:
+        translate3d(var(--pool-match-x), calc(var(--pool-y) - 12px + var(--pool-match-y)), 0)
+        scale(0.98);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .specimen {
+      transition: opacity 120ms linear;
+    }
+    .catalog:not(.is-ready) .specimen,
+    .catalog.is-ready .specimen,
+    .catalog.is-ready .photo-wrap {
+      animation: none;
+    }
+    .catalog:not(.is-ready) .specimen {
+      opacity: 0.78;
+      transform: translate3d(var(--pool-x), var(--pool-y), 0) scale(var(--pool-scale));
+    }
+  }
+
 </style>
 </head>
 <body data-state="idle">
@@ -2164,12 +2395,35 @@ const REPLY = (q) => {
    but the structure accepts real PNG product photos */
 const catalogEl = document.getElementById('catalog');
 document.getElementById('catalogMeta').textContent = `${ITEMS.length} items`;
+const POOL_LAYOUT = [
+  { x: -18, y: 22, scale: 0.88, rotate: -7, delay: 30,  floatDelay: -900,  floatDuration: 5100 },
+  { x: 10,  y: -4, scale: 1.04, rotate: 4,  delay: 80,  floatDelay: -3100, floatDuration: 5900 },
+  { x: -8,  y: 30, scale: 0.94, rotate: -3, delay: 130, floatDelay: -1800, floatDuration: 5400 },
+  { x: 16,  y: 4,  scale: 1.10, rotate: 5,  delay: 180, floatDelay: -4300, floatDuration: 6300 },
+  { x: -12, y: 24, scale: 0.91, rotate: -5, delay: 230, floatDelay: -2400, floatDuration: 5600 },
+  { x: 18,  y: -2, scale: 1.01, rotate: 4,  delay: 280, floatDelay: -1200, floatDuration: 6100 },
+  { x: -10, y: 26, scale: 0.90, rotate: -6, delay: 330, floatDelay: -3600, floatDuration: 5300 },
+  { x: 12,  y: -8, scale: 1.06, rotate: 3,  delay: 380, floatDelay: -2100, floatDuration: 6500 },
+  { x: -16, y: 18, scale: 0.95, rotate: -4, delay: 430, floatDelay: -4700, floatDuration: 5800 },
+  { x: 8,   y: 0,  scale: 1.02, rotate: 6,  delay: 480, floatDelay: -1500, floatDuration: 6200 },
+];
 function renderCatalog() {
   catalogEl.innerHTML = '';
-  ITEMS.forEach((it) => {
+  ITEMS.forEach((it, index) => {
     const cell = document.createElement('div');
     cell.className = 'specimen';
     cell.dataset.id = it.id;
+    cell.tabIndex = 0;
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('aria-label', `${it.name}, $${it.price} per day, ${it.dist}`);
+    const pool = POOL_LAYOUT[index % POOL_LAYOUT.length];
+    cell.style.setProperty('--pool-x', `${pool.x}px`);
+    cell.style.setProperty('--pool-y', `${pool.y}px`);
+    cell.style.setProperty('--pool-scale', String(pool.scale));
+    cell.style.setProperty('--pool-rotate', `${pool.rotate}deg`);
+    cell.style.setProperty('--pool-delay', `${pool.delay}ms`);
+    cell.style.setProperty('--pool-float-delay', `${pool.floatDelay}ms`);
+    cell.style.setProperty('--pool-float-duration', `${pool.floatDuration}ms`);
     const h1 = it.hue;
     const h2 = (it.hue + 40) % 360;
     cell.innerHTML = `
@@ -2185,11 +2439,47 @@ function renderCatalog() {
 }
 renderCatalog();
 
+const reducedPoolMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+if (reducedPoolMotion.matches || !('IntersectionObserver' in window)) {
+  catalogEl.classList.add('is-ready');
+} else {
+  const catalogObserver = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    catalogEl.classList.add('is-ready');
+    catalogObserver.disconnect();
+  }, { threshold: 0.12 });
+  catalogObserver.observe(catalogEl);
+}
+
 function highlightMatches(ids) {
-  document.querySelectorAll('.specimen').forEach(el => {
-    el.classList.toggle('match', ids.includes(el.dataset.id));
-    el.classList.toggle('fade', ids.length > 0 && !ids.includes(el.dataset.id));
+  const cells = [...document.querySelectorAll('.specimen')];
+  cells.forEach((el) => {
+    el.style.setProperty('--pool-match-x', '0px');
+    el.style.setProperty('--pool-match-y', '0px');
   });
+  catalogEl.classList.toggle('has-matches', ids.length > 0);
+  cells.forEach(el => {
+    const isMatch = ids.includes(el.dataset.id);
+    const isFaded = ids.length > 0 && !isMatch;
+    el.classList.toggle('match', isMatch);
+    el.classList.toggle('fade', isFaded);
+    el.tabIndex = isFaded ? -1 : 0;
+    el.setAttribute('aria-hidden', String(isFaded));
+  });
+  if (ids.length > 0) {
+    requestAnimationFrame(() => {
+      const matches = cells.filter((el) => ids.includes(el.dataset.id));
+      const catalogRect = catalogEl.getBoundingClientRect();
+      const spacing = Math.min(190, catalogRect.width / Math.max(matches.length + 1, 3));
+      const targetCenterY = catalogRect.top + Math.min(150, catalogRect.height * 0.24);
+      matches.forEach((el, index) => {
+        const rect = el.getBoundingClientRect();
+        const targetCenter = catalogRect.left + catalogRect.width / 2 + (index - (matches.length - 1) / 2) * spacing;
+        el.style.setProperty('--pool-match-x', `${targetCenter - (rect.left + rect.width / 2)}px`);
+        el.style.setProperty('--pool-match-y', `${targetCenterY - (rect.top + rect.height / 2)}px`);
+      });
+    });
+  }
 }
 
 /* ────────────────────────────────────────────────────────────────────
@@ -4699,6 +4989,14 @@ catalogEl.addEventListener('click', (e) => {
   if (!cell) return;
   const id = cell.dataset.id;
   const item = ITEMS.find(it => it.id === id);
+  if (item) openSheet(item);
+});
+catalogEl.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const cell = e.target.closest('.specimen');
+  if (!cell) return;
+  e.preventDefault();
+  const item = ITEMS.find(it => it.id === cell.dataset.id);
   if (item) openSheet(item);
 });
 
