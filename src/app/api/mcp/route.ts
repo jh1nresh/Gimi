@@ -79,6 +79,9 @@ export async function POST(req: NextRequest) {
     if (!item) {
       return NextResponse.json({ error: "No rentable inventory is available" }, { status: 404 });
     }
+    if (item.status !== "available") {
+      return NextResponse.json({ error: "Item is not available for rental" }, { status: 409 });
+    }
     const renter = publicKeyOrFallback(body.renterWallet, DEMO_RENTER_WALLET);
     const hours = Number(body.hours ?? item.expectedHours);
     const rentalId = body.rentalId ?? body.draftId ?? `mcp_${item.id}_${crypto.randomUUID()}`;

@@ -3506,6 +3506,9 @@ async function updateOwnerListingStatus(listingId, nextStatus, button) {
   }
   setListingStatus(nextStatus === 'paused' ? 'Pausing listing...' : 'Making listing available...', 'pending');
   try {
+    const ownerProof = await requestOwnerActionProof(
+      nextStatus === 'paused' ? 'pause_listing' : 'make_listing_available', listingId, connectedWallet
+    );
     const res = await fetch('/api/listings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -3513,6 +3516,7 @@ async function updateOwnerListingStatus(listingId, nextStatus, button) {
         id: listingId,
         ownerWallet: connectedWallet,
         status: nextStatus,
+        ownerProof,
       }),
     });
     const data = await res.json();

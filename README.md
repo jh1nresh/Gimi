@@ -767,7 +767,8 @@ Records a confirmed Base MCP payment as a `rental_intent` with `provider:
 and confirm return, and Base-funded returns write an off-chain receipt tied to
 the Base transaction hash. Set `BASE_MCP_CONFIRMATION_SECRET` in production and
 call this endpoint with `Authorization: Bearer <secret>` from a trusted
-agent/backend; without it, confirmation is caller-attested demo mode.
+agent/backend. Without it, production and Vercel deployments reject confirmation
+with HTTP 503; caller-attested demo mode is available only in local non-production runs.
 
 ```bash
 curl -s -X POST http://localhost:3000/api/base-plugin/gimi/payment-confirmed \

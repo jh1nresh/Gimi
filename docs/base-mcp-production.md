@@ -39,7 +39,7 @@ Run all Supabase migrations through:
 supabase/migrations/009_add_base_mcp_rental_intents.sql
 ```
 
-`BASE_MCP_CONFIRMATION_SECRET` is required for production. Without it, `payment-confirmed` stays in caller-attested demo mode and should not be trusted as payment source of truth.
+`BASE_MCP_CONFIRMATION_SECRET` is required for production and Vercel previews. Without it, `payment-confirmed` returns HTTP 503 before reading or writing rentals. Caller-attested demo mode is restricted to local non-production runs.
 
 ## Plugin URLs
 

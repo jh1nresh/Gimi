@@ -14,6 +14,9 @@ export async function GET(req: NextRequest) {
   if (!item) {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
+  if (item.status !== "available") {
+    return NextResponse.json({ error: "Item is not available for rental" }, { status: 409 });
+  }
 
   try {
     const prepared = buildBaseDepositCall({

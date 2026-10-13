@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getRentableItem } from "@/lib/rentableItems";
 import { getListingsRepository } from "@/lib/listingsRepository";
-import { getRentalIntentsRepository } from "@/lib/rentalIntentsRepository";
+import { getRentalIntentsRepository, PersistedRentalIntent } from "@/lib/rentalIntentsRepository";
 import { getRentalSessionsRepository } from "@/lib/rentalSessionsRepository";
 import {
   RENTAL_ITEM_STATUS_RENTED,
@@ -51,6 +51,17 @@ export async function POST(req: NextRequest) {
   try {
     const item = await getRentableItem(itemId);
     if (!item) return errorResponse("Item not found", 404);
+
+    const intent = intentId ? await getRentalIntentsRepository().getById(intentId) : undefined;
+    if (intentId && !intent) return errorResponse("Rental intent not found", 404);
+    if (intent && (
+      intent.paymentMethod !== "solana_wallet" || intent.provider !== "solana" ||
+      intent.itemId !== itemId || intent.ownerWallet !== item.owner ||
+      intent.renterWallet !== renterWallet || intent.rentalId !== rentalId ||
+      !["intent", "active"].includes(intent.sessionStatus)
+    )) {
+      return errorResponse("Rental intent does not match this Solana rental", 409);
+    }
 
     const rentProof = deriveRentProofAccounts({
       itemId,
@@ -125,12 +136,15 @@ export async function POST(req: NextRequest) {
 
     const listing = await getListingsRepository().getById(itemId);
     const updatedListing = listing ? await getListingsRepository().updateStatus(itemId, "rented") : undefined;
-    const intent = intentId ? await syncRentalIntent(intentId, session.rentalId) : undefined;
+    const updatedIntent = intent ? await syncRentalIntent(intent) : undefined;
+    if (intent && !updatedIntent) {
+      return errorResponse("Rental intent changed while recording rental start; refresh its status", 409);
+    }
 
     return NextResponse.json({
       rentalSession: session,
       session,
-      intent,
+      intent: updatedIntent,
       listing: updatedListing,
       rentProof,
       explorerUrl: `https://explorer.solana.com/tx/${startSignature}?cluster=devnet`,
@@ -140,18 +154,15 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function syncRentalIntent(intentId: string, rentalId: string) {
+async function syncRentalIntent(intent: PersistedRentalIntent) {
   const repository = getRentalIntentsRepository();
-  const intent = await repository.getById(intentId);
-  if (!intent) return undefined;
 
-  return repository.save({
+  return repository.compareAndSave({
     ...intent,
-    rentalId,
     paymentStatus: "confirmed",
     escrowStatus: "onchain_locked",
     sessionStatus: "active",
     receiptStatus: "pending_onchain",
-    updatedAt: new Date().toISOString(),
-  });
+    updatedAt: new Date(Math.max(Date.now(), Date.parse(intent.updatedAt) + 1)).toISOString(),
+  }, intent.updatedAt);
 }

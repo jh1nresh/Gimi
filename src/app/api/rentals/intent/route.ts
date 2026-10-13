@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
   try {
     const item = await getRentableItem(itemId);
     if (!item) return errorResponse("Item not found", 404);
+    if (item.status !== "available") return errorResponse("Item is not available for rental", 409);
 
     const hours = normalizedHours(body.hours, item.expectedHours);
     const rentAmount = money(Math.max(item.minimumFee, item.ratePerHour * hours));

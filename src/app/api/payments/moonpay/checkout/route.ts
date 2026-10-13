@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createMoonPayCheckout, totalAmount } from "@/lib/moonpayCommerce";
 import { getRentalIntentsRepository } from "@/lib/rentalIntentsRepository";
+import { getRentableItem } from "@/lib/rentableItems";
 import { executionProvenanceReady, recordExecutionEventsSafely } from "@/lib/rentalExecutionEvents";
 
 function errorResponse(message: string, status: number, extra?: Record<string, unknown>) {
@@ -26,12 +27,39 @@ export async function POST(req: NextRequest) {
     if (intent.paymentMethod !== "card") {
       return errorResponse("MoonPay checkout only supports card rental intents", 400);
     }
+    if (intent.provider !== "moonpay_commerce") {
+      return errorResponse("Rental intent does not use MoonPay checkout", 409);
+    }
     if (intent.paymentStatus === "confirmed") {
       return errorResponse("Rental intent is already funded", 409, { intent });
     }
+    if (intent.sessionStatus !== "intent" || intent.escrowStatus !== "not_funded" ||
+      !["created", "requires_action"].includes(intent.paymentStatus) || Date.parse(intent.expiresAt) <= Date.now()) {
+      return errorResponse("Rental intent is no longer awaiting checkout", 409);
+    }
+    const item = await getRentableItem(intent.itemId);
+    if (!item || item.status !== "available") return errorResponse("Item is not available for rental", 409);
+
+    const hasBoundPayment = intent.providerPaymentId &&
+      intent.providerPaymentId !== `moonpay_hosted_${intent.id}` &&
+      intent.providerPaymentId !== `moonpay_${intent.id}`;
+    if (hasBoundPayment) {
+      if (!intent.providerCheckoutUrl) return errorResponse("Existing MoonPay payment needs checkout reconciliation", 409);
+      return NextResponse.json({
+        intent,
+        idempotent: true,
+        providerPaymentId: intent.providerPaymentId,
+        checkoutUrl: intent.providerCheckoutUrl,
+        amount: {
+          rent: intent.rentAmount, deposit: intent.depositAmount, platformFeeEstimate: intent.platformFeeEstimate,
+          total: totalAmount(intent), currency: intent.currency,
+        },
+        provider: { name: "moonpay_commerce", raw: { mode: "existing_checkout" } },
+      });
+    }
 
     const checkout = await createMoonPayCheckout(intent);
-    const updatedIntent = await repository.save({
+    const updatedIntent = await repository.compareAndSave({
       ...intent,
       provider: "moonpay_commerce",
       providerPaymentId: checkout.providerPaymentId,
@@ -39,8 +67,11 @@ export async function POST(req: NextRequest) {
       paymentStatus: "requires_action",
       escrowStatus: "not_funded",
       sessionStatus: "intent",
-      updatedAt: new Date().toISOString(),
-    });
+      updatedAt: new Date(Math.max(Date.now(), Date.parse(intent.updatedAt) + 1)).toISOString(),
+    }, intent.updatedAt);
+    if (!updatedIntent) {
+      return errorResponse("Rental intent changed while preparing checkout; refresh its status", 409);
+    }
     const executionTraceStatus = await recordExecutionEventsSafely([
       {
         eventKey: "moonpay-checkout-requested",

@@ -28,6 +28,9 @@ export async function POST(req: NextRequest) {
   if (!item) {
     return NextResponse.json({ error: "Item not found" }, { status: 404 });
   }
+  if (item.status !== "available") {
+    return NextResponse.json({ error: "Item is not available for rental" }, { status: 409 });
+  }
 
   const draftId = body.draftId ?? `draft_${item.id}_${crypto.randomUUID()}`;
   const solanaPayUrl = `solana:https://rentproof.local/api/solana-pay/start-rental?draftId=${draftId}`;

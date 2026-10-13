@@ -30,14 +30,29 @@ export async function POST(req: NextRequest) {
   try {
     const event = parseMoonPayWebhook(body);
     const repository = getRentalIntentsRepository();
+    const paymentIntent = await repository.getByProviderPaymentId(event.providerPaymentId);
     const intent =
       (event.rentalIntentId ? await repository.getById(event.rentalIntentId) : undefined) ??
-      (await repository.getByProviderPaymentId(event.providerPaymentId));
+      paymentIntent;
     if (!intent) {
       return errorResponse("Rental intent not found for provider payment", 404, {
         providerPaymentId: event.providerPaymentId,
         rentalIntentId: event.rentalIntentId ?? null,
       });
+    }
+
+    if (
+      intent.paymentMethod !== "card" || intent.provider !== "moonpay_commerce" ||
+      (event.rentalIntentId && event.rentalIntentId !== intent.id) ||
+      (paymentIntent && paymentIntent.id !== intent.id)
+    ) {
+      return errorResponse("MoonPay payment does not belong to this rental intent", 409);
+    }
+    const awaitingProviderId = !intent.providerPaymentId ||
+      intent.providerPaymentId === `moonpay_hosted_${intent.id}` ||
+      intent.providerPaymentId === `moonpay_${intent.id}`;
+    if (awaitingProviderId ? event.rentalIntentId !== intent.id : intent.providerPaymentId !== event.providerPaymentId) {
+      return errorResponse("MoonPay payment id does not match the rental checkout", 409);
     }
 
     const mapped = moonPayStatusToIntent(event.status);
