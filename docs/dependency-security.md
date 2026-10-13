@@ -1,34 +1,49 @@
 # Dependency security baseline
 
-## October 2026 review — release gate blocked
+## October 2026 review — runtime gate restored
 
 The 2026-10-13 review upgraded Next.js and its ESLint config to 16.3.8,
-Axios to 1.20.0, Hono to 4.13.7, and PostCSS to 8.5.23. The lockfile also
-updates compatible Sharp, baseline-browser-mapping, fast-copy, nanoid,
-socket.io-parser, and source-map-js dependencies. No advisory allowlist was
-expanded and no forced major transitive override was introduced.
+Axios to 1.20.0, Hono to 4.13.7, and PostCSS to 8.5.23, together with compatible
+transitive patches. A follow-up removes the two remaining vulnerable dependency
+chains without expanding the advisory allowlist:
 
-The runtime audit moved from 50 affected package nodes (one critical) to
-37 (zero critical, nine high, 28 moderate). These are dependency-graph counts,
-not independent exploitable paths. `npm run audit:runtime` still **fails** on
-four advisory URLs beyond the historical allowlist:
+- Old `@walletconnect/utils` 2.21.x consumers resolve to **2.21.10**, whose
+  [upstream manifest](https://github.com/WalletConnect/walletconnect-monorepo/blob/2aace94ce9d87cc13987f66e86310324b23c0fa0/packages/utils/package.json)
+  removes `query-string` and its `decode-uri-component` dependency. This is
+  scoped to versions below 2.21.10; existing 2.22.4 consumers stay on 2.22.4.
+  No CommonJS-to-ESM decoder substitution or vendored parser is needed.
+- Only `@solana/web3.js`'s RPC dependency resolves to **jayson 5.0.0**, removing
+  `stream-json` and one legacy UUID copy. Its
+  [upstream changes](https://github.com/tedeh/jayson/blob/v5.0.0/README.md#changelog-only-notable-milestoneschanges)
+  affect TCP/TLS framing and native crypto. Web3 uses `jayson/lib/client/browser`
+  for HTTP JSON-RPC, not the changed TCP/TLS transport. Gimi's Next.js runtime
+  and CI meet Jayson's Node >=20 requirement. This deliberately crosses Web3's
+  declared Jayson major range and must retain the compatibility tests below.
 
-- `decode-uri-component`, via WalletConnect's pinned `query-string@7.1.3`:
-  [GHSA-vcc3-ghjq-m6fr](https://github.com/advisories/GHSA-vcc3-ghjq-m6fr).
-  Version 0.5.0 is ESM, while query-string 7 requires its decoder as CommonJS;
-  blindly overriding the decoder would break that API. A compatible parent
-  upgrade or a separately verified backport is required.
-- `stream-json`, via `@solana/web3.js@1.98.4` → `jayson@4.3.0`:
-  [GHSA-528h-pc64-c93x](https://github.com/advisories/GHSA-528h-pc64-c93x),
-  [GHSA-hqr4-qq8f-hg3x](https://github.com/advisories/GHSA-hqr4-qq8f-hg3x), and
-  [GHSA-mjw6-4jj6-33hc](https://github.com/advisories/GHSA-mjw6-4jj6-33hc).
-  No patched 1.x release is available. Jayson 5 removes stream-json but changes
-  its transport/runtime contract and falls outside Web3's declared range;
-  that migration needs independent RPC/browser compatibility evidence.
+`npm run audit:runtime` now passes with **19 affected package nodes** (zero
+critical, nine high, ten moderate), down from 50 before this PR and 37 after the
+first patch. These are dependency-graph counts, not independent exploitable
+paths. Only the four historical advisory URLs below remain; the audit gate and
+its allowlist are unchanged. Passing this gate does **not** mean zero upstream
+vulnerabilities or readiness for real-money production.
 
-The PR must remain pending while this required gate fails. The dependency
-updates remove the observed critical advisory but do not establish production
-readiness. See [the audit and remaining launch work](repo-review-2026-10-13.md).
+`tests/dependencyCompatibility.test.ts` exercises the installed dependencies
+through their real consumers: wallet pairing URI round trips, escaped/malformed
+input, Solana request serialization and IDs, batched responses, provider errors,
+and malformed JSON. The installed Jayson browser client also executes in an
+isolated context with Web Crypto only, including the getRandomValues fallback.
+The production Next build separately verifies bundling. No external RPC or
+wallet provider is called by these tests.
+
+Clean `npm ci --ignore-scripts` and `npm ls @walletconnect/utils jayson` validate
+lockfile reproducibility and override resolution. Run the unchanged full gate:
+
+```bash
+npm run verify:prod-ready
+```
+
+See [the repo review](repo-review-2026-10-13.md) for remaining product and payment
+acceptance work; a passing dependency gate does not resolve those launch gaps.
 
 ## Historical July baseline
 
@@ -42,8 +57,7 @@ The unresolved advisory sources are:
 - `bigint-buffer` — `GHSA-3gc7-fjrx-p6mg`;
 - `@solana/buffer-layout-utils` — affected through `bigint-buffer`;
 - `@solana/spl-token` — affected through `buffer-layout-utils`.
-- legacy `uuid` consumers in Privy's optional EVM wallet integrations and
-  Solana Web3's RPC helper — `GHSA-w5hq-g745-h8pq`.
+- legacy `uuid` consumers in Privy's optional EVM wallet integrations — `GHSA-w5hq-g745-h8pq`.
 - WebSocket 8 consumers below their next compatible parent release —
   `GHSA-58qx-3vcg-4xpx` and `GHSA-96hv-2xvq-fx4p`.
 
