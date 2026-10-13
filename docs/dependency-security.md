@@ -1,6 +1,36 @@
 # Dependency security baseline
 
-## Current result
+## October 2026 review — release gate blocked
+
+The 2026-10-13 review upgraded Next.js and its ESLint config to 16.3.8,
+Axios to 1.20.0, Hono to 4.13.7, and PostCSS to 8.5.23. The lockfile also
+updates compatible Sharp, baseline-browser-mapping, fast-copy, nanoid,
+socket.io-parser, and source-map-js dependencies. No advisory allowlist was
+expanded and no forced major transitive override was introduced.
+
+The runtime audit moved from 50 affected package nodes (one critical) to
+37 (zero critical, nine high, 28 moderate). These are dependency-graph counts,
+not independent exploitable paths. `npm run audit:runtime` still **fails** on
+four advisory URLs beyond the historical allowlist:
+
+- `decode-uri-component`, via WalletConnect's pinned `query-string@7.1.3`:
+  [GHSA-vcc3-ghjq-m6fr](https://github.com/advisories/GHSA-vcc3-ghjq-m6fr).
+  Version 0.5.0 is ESM, while query-string 7 requires its decoder as CommonJS;
+  blindly overriding the decoder would break that API. A compatible parent
+  upgrade or a separately verified backport is required.
+- `stream-json`, via `@solana/web3.js@1.98.4` → `jayson@4.3.0`:
+  [GHSA-528h-pc64-c93x](https://github.com/advisories/GHSA-528h-pc64-c93x),
+  [GHSA-hqr4-qq8f-hg3x](https://github.com/advisories/GHSA-hqr4-qq8f-hg3x), and
+  [GHSA-mjw6-4jj6-33hc](https://github.com/advisories/GHSA-mjw6-4jj6-33hc).
+  No patched 1.x release is available. Jayson 5 removes stream-json but changes
+  its transport/runtime contract and falls outside Web3's declared range;
+  that migration needs independent RPC/browser compatibility evidence.
+
+The PR must remain pending while this required gate fails. The dependency
+updates remove the observed critical advisory but do not establish production
+readiness. See [the audit and remaining launch work](repo-review-2026-10-13.md).
+
+## Historical July baseline
 
 The July 2026 dependency hardening pass upgraded the direct framework, auth,
 Solana, and Supabase dependencies and pinned patched same-major transitive

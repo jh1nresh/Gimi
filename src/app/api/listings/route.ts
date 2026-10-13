@@ -3,6 +3,7 @@ import { getRentableItems } from "@/lib/rentableItems";
 import { getListingsRepository } from "@/lib/listingsRepository";
 import { PersistedListingStatus } from "@/lib/listings";
 import { getNotificationsRepository, newNotification } from "@/lib/notificationsRepository";
+import { verifyOwnerActionProof } from "@/lib/ownerActionProof";
 
 const WALLET_PATTERN = /^[1-9A-HJ-NP-Za-km-z]{32,64}$/;
 const OWNER_MUTABLE_STATUSES = new Set<PersistedListingStatus>(["available", "paused"]);
@@ -70,6 +71,16 @@ export async function PATCH(req: NextRequest) {
     const listing = await getListingsRepository().getById(id);
     if (!listing) return errorResponse("Listing not found", 404);
     if (listing.ownerWallet !== ownerWallet) return errorResponse("Only the owner wallet can update this listing", 403);
+    try {
+      verifyOwnerActionProof({
+        proof: body.ownerProof,
+        action: status === "paused" ? "pause_listing" : "make_listing_available",
+        intentId: id,
+        ownerWallet,
+      });
+    } catch (error) {
+      return errorResponse(error instanceof Error ? error.message : "Owner wallet signature is required", 403);
+    }
     if (listing.status !== "available" && listing.status !== "paused") {
       return errorResponse("Only available or paused listings can be changed from inventory management", 409, { listing });
     }

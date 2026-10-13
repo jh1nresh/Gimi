@@ -1,7 +1,7 @@
 import { createPublicKey, verify } from "node:crypto";
 import bs58 from "bs58";
 
-export type OwnerAction = "mark_handed_off" | "confirm_card_return" | "confirm_provider_return";
+export type OwnerAction = "mark_handed_off" | "confirm_card_return" | "confirm_provider_return" | "pause_listing" | "make_listing_available";
 
 export interface OwnerActionProof {
   address: string;

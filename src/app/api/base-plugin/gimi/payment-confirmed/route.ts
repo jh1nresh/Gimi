@@ -16,7 +16,10 @@ function errorResponse(message: string, status: number, extra?: Record<string, u
 }
 
 export async function POST(req: NextRequest) {
-  const expectedSecret = process.env.BASE_MCP_CONFIRMATION_SECRET;
+  const expectedSecret = process.env.BASE_MCP_CONFIRMATION_SECRET?.trim();
+  if (!expectedSecret && (process.env.NODE_ENV === "production" || process.env.VERCEL)) {
+    return errorResponse("Base MCP confirmation is not configured", 503);
+  }
   if (expectedSecret) {
     const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
     if (bearer !== expectedSecret) return errorResponse("Unauthorized Base MCP confirmation", 401);
@@ -48,6 +51,9 @@ export async function POST(req: NextRequest) {
     const repository = getRentalIntentsRepository();
     const existing = await repository.getByProviderPaymentId(providerPaymentId);
     if (existing) {
+      if (existing.itemId !== itemId || existing.renterWallet?.toLowerCase() !== renterWallet.toLowerCase()) {
+        return errorResponse("Base payment is already bound to another rental", 409);
+      }
       return NextResponse.json({
         intent: existing,
         idempotent: true,
@@ -55,6 +61,8 @@ export async function POST(req: NextRequest) {
         nextAction: "owner_mark_handed_off",
       });
     }
+
+    if (item.status !== "available") return errorResponse("Item is not available for rental", 409);
 
     const quote = buildBaseRentalQuote(item, body.hours);
     const now = new Date();

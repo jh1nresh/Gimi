@@ -102,6 +102,9 @@ export async function POST(req: NextRequest) {
   if (!item) {
     return NextResponse.json({ error: "No rentable inventory is available" }, { status: 404 });
   }
+  if (tool === "rentproof.create_rental_request" && item.status !== "available") {
+    return NextResponse.json({ error: "Item is not available for rental" }, { status: 409 });
+  }
   const hours = Number(body.hours ?? item.expectedHours);
   const expectedFee = Math.max(item.minimumFee, hours * item.ratePerHour);
 
